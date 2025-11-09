@@ -1,4 +1,7 @@
 import type { NextApiRequest, NextApiResponse } from "next";
+import OpenAI from "openai";
+
+const client = new OpenAI();
 
 type ResponseData = {
     message: string;

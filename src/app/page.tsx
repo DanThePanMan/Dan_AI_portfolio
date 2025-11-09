@@ -10,12 +10,19 @@ import ColorToggle from "./components/ColorToggle";
 const MAX_LINES = 1000;
 
 // test function before I implement the actual rag logic
-async function fetchResponseTest() {
-    return new Promise((resolve) => {
-        setTimeout(() => {
-            resolve("aasdf");
-        }, 3000);
+async function fetchResponse(prompt: string) {
+    const res = await fetch("/api", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ input: prompt }),
     });
+
+    if (!res.ok)
+        throw new Error("Failed to generate response, please try again later.");
+    const data = await res.json();
+    return data.message;
 }
 
 export default function Home() {
@@ -133,10 +140,18 @@ Welcome to DanAI v1.0 - Interactive AI Terminal Interface
             }, 0);
 
             // now we call our RAG agent Maybe add some text to show wha tool is being used
-            fetchResponseTest().then((res) => {
-                setIsLoading(false);
-                typeMessage(res as string);
-            });
+            fetchResponse(userInput)
+                .then((res) => {
+                    setIsLoading(false);
+                    typeMessage(res as string);
+                })
+                .catch((error) => {
+                    setIsLoading(false);
+                    console.log(error);
+                    typeMessage(
+                        "Failed to Generate response, please try again later."
+                    );
+                });
         }
     };
 
