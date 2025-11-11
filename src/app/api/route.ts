@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { semanticSearch, buildContext } from "./utils";
+
 const client = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
 });
@@ -12,12 +14,37 @@ export async function POST(request: Request) {
     try {
         const body: Body = await request.json();
 
-        const response = await client.responses.create({
+        const searchResults = await semanticSearch(body.input);
+        const context = buildContext(searchResults);
+
+        const response = await client.chat.completions.create({
             model: "gpt-4o-mini",
-            input: body.input,
+            messages: [
+                {
+                    role: "system",
+                    content: `You are Daniel Chen's portfolio robot that presents portfolio details to other people. 
+                    Answer questions about Daniel's experience, projects, and skills based ONLY on the provided context.
+                    Do not use markdown only respond in plain text. Keep responses short and conversational. 
+                    If the question is not about Daniel Chen or cannot be answered from the context, politely decline.
+                    Context:${context}`,
+                },
+                {
+                    role: "user",
+                    content: body.input,
+                },
+            ],
         });
-        return NextResponse.json({ message: response.output_text });
+
+        return NextResponse.json({
+            message: response.choices[0].message.content,
+        });
     } catch (error) {
-        return NextResponse.json({ error: error }, { status: 400 });
+        console.error("API Error:", error);
+        return NextResponse.json(
+            {
+                error: error instanceof Error ? error.message : String(error),
+            },
+            { status: 400 }
+        );
     }
 }

@@ -38,6 +38,7 @@ export default function Home() {
     );
     const inputRef = useRef<HTMLInputElement>(null);
     const terminalRef = useRef<HTMLDivElement>(null);
+    const bottomRef = useRef<HTMLDivElement>(null);
 
     const colors = {
         green: {
@@ -98,9 +99,51 @@ Welcome to DanAI v1.0 - Interactive AI Terminal Interface
         typeMessage(welcomeMessage);
     }, []);
 
+    // Auto-scroll when typing or loading
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [typingLine, isTyping, isLoading]);
+
+    // Auto-scroll when new lines are added
+    useEffect(() => {
+        bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+    }, [lines]);
+
     const typeMessage = (message: string) => {
         setIsTyping(true);
-        const words = message.split(" ");
+
+        // Split long messages into multiple lines (wrap at ~80 characters)
+        const wrapText = (text: string, maxLength: number = 80): string[] => {
+            const lines: string[] = [];
+            const paragraphs = text.split("\n");
+
+            paragraphs.forEach((paragraph) => {
+                if (paragraph.length <= maxLength) {
+                    lines.push(paragraph);
+                } else {
+                    const words = paragraph.split(" ");
+                    let currentLine = "";
+
+                    words.forEach((word) => {
+                        if ((currentLine + word).length <= maxLength) {
+                            currentLine += (currentLine ? " " : "") + word;
+                        } else {
+                            if (currentLine) lines.push(currentLine);
+                            currentLine = word;
+                        }
+                    });
+
+                    if (currentLine) lines.push(currentLine);
+                }
+            });
+
+            return lines;
+        };
+
+        const wrappedLines = wrapText(message);
+        const fullMessage = wrappedLines.join("\n");
+
+        const words = fullMessage.split(" ");
         let currentIndex = 0;
         const interval = setInterval(() => {
             if (currentIndex < words.length) {
@@ -109,7 +152,7 @@ Welcome to DanAI v1.0 - Interactive AI Terminal Interface
                 currentIndex++;
             } else {
                 clearInterval(interval);
-                setLines((prev) => [...prev, message]);
+                setLines((prev) => [...prev, fullMessage]);
                 setTypingLine("");
                 setIsTyping(false);
             }
@@ -198,6 +241,7 @@ Welcome to DanAI v1.0 - Interactive AI Terminal Interface
                     onBlur={() => setIsFocused(false)}
                 />
             )}
+            <div ref={bottomRef} />
         </div>
     );
 }
