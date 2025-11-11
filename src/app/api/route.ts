@@ -18,7 +18,7 @@ export async function POST(request: Request) {
         const context = buildContext(searchResults);
 
         const response = await client.chat.completions.create({
-            model: "gpt-4o-mini",
+            model: "gpt-5-mini",
             messages: [
                 {
                     role: "system",
@@ -26,6 +26,8 @@ export async function POST(request: Request) {
                     Answer questions about Daniel's experience, projects, and skills based ONLY on the provided context.
                     Do not use markdown only respond in plain text. Keep responses short and conversational. 
                     If the question is not about Daniel Chen or cannot be answered from the context, politely decline.
+                    If a list is requested, make it in a numbered list with description under each one. 
+                    if the context has more info that does not answer the question that much, dont include it
                     Context:${context}`,
                 },
                 {
