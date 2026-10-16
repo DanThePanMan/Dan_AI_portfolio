@@ -6,10 +6,13 @@ const client = new OpenAI({
 });
 
 const pc = new Pinecone({ apiKey: process.env.PINECONE_API_KEY || "" });
-const index = pc.index(
+const baseIndex = pc.index(
     process.env.PINECONE_INDEX_NAME || "",
     process.env.PINECONE_HOST || ""
 );
+const index = process.env.PINECONE_NAMESPACE
+    ? baseIndex.namespace(process.env.PINECONE_NAMESPACE)
+    : baseIndex;
 
 export type SearchMatch = {
     id: string;
@@ -37,7 +40,6 @@ export async function semanticSearch(prompt: string): Promise<SearchResults> {
         vector: queryVector,
         topK: 15,
         includeMetadata: true,
-        namespace: process.env.PINECONE_NAMESPACE || undefined,
     });
 
     return response as SearchResults;
