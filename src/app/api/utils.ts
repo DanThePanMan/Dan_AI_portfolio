@@ -37,6 +37,7 @@ export async function semanticSearch(prompt: string): Promise<SearchResults> {
         vector: queryVector,
         topK: 15,
         includeMetadata: true,
+        namespace: process.env.PINECONE_NAMESPACE || undefined,
     });
 
     return response as SearchResults;

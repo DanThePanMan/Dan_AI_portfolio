@@ -3,10 +3,14 @@ from pinecone import Pinecone
 import pandas as pd
 import json
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+ROOT_DIR = Path(__file__).resolve().parents[1]
+DATA_FILE = Path(__file__).with_name("experience.json")
+
+# Load the portfolio configuration regardless of the working directory.
+load_dotenv(ROOT_DIR / ".env")
 
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 pc = Pinecone(api_key=os.getenv("PINECONE_API_KEY"))
@@ -17,7 +21,7 @@ embedding_encoding = "cl100k_base"
 max_tokens = 8000  
 
 # getting the json ready
-with open('experience.json', encoding='utf-8') as file:
+with open(DATA_FILE, encoding='utf-8') as file:
     content = file.read()
 
 # Replace smart quotes and special characters with standard ones
@@ -120,7 +124,33 @@ for proj in projects:
                 "text": detail_chunk
             }
         })
- 
+
+contact = parsed.get('contact', {})
+if contact:
+    contact_text = "Contact Daniel Chen: " + ", ".join(
+        f"{label}: {value}" for label, value in contact.items() if value
+    )
+    embedding_data.append({
+        "text": contact_text,
+        "metadata": {
+            "type": "contact",
+            "category": "overview",
+            "text": contact_text,
+        }
+    })
+
+for skill_group in parsed.get('skills', []):
+    for detail_idx, detail in enumerate(skill_group.get('details', [])):
+        skill_text = f"Daniel Chen's skills: {detail}"
+        embedding_data.append({
+            "text": skill_text,
+            "metadata": {
+                "type": "skill",
+                "category": "overview",
+                "detail_index": detail_idx,
+                "text": skill_text,
+            }
+        })
 
 education_list = parsed.get('education', [])
 for edu in education_list:
@@ -183,7 +213,18 @@ for emb in embeddings:
     
 print(f"\nGenerated {len(embeddings)} embeddings")
 
-# store them in the vector db
-dense_index = pc.Index("dan-ai-portfolio")
-dense_index.upsert(vectors=embeddings)
+# Replace the configured namespace so vectors removed from the source do not remain searchable.
+index_name = os.getenv("PINECONE_INDEX_NAME", "dan-ai-portfolio")
+index_host = os.getenv("PINECONE_HOST")
+namespace = os.getenv("PINECONE_NAMESPACE", "")
+dense_index = pc.Index(name=index_name, host=index_host) if index_host else pc.Index(index_name)
+
+delete_options = {"delete_all": True}
+upsert_options = {"vectors": embeddings}
+if namespace:
+    delete_options["namespace"] = namespace
+    upsert_options["namespace"] = namespace
+
+dense_index.delete(**delete_options)
+dense_index.upsert(**upsert_options)
 print("Successfully uploaded embeddings to Pinecone!")

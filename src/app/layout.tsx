@@ -2,9 +2,14 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-    title: "Daniel Chen - AI Portfolio",
+    title: "Daniel Chen - Software Developer",
     description:
-        "Interactive AI-powered portfolio showcasing Daniel Chen's projects, experience, and technical skills. Ask me anything about my work!",
+        "Portfolio of Daniel Chen, a software developer based in Ottawa, Canada.",
+    icons: {
+        icon: [{ url: "/favicon.png?v=6", type: "image/png", sizes: "64x64" }],
+        shortcut: "/favicon.png?v=6",
+        apple: "/icon.png?v=6",
+    },
 };
 
 export default function RootLayout({
