@@ -79,10 +79,9 @@ export default function Home() {
 
                     <section className="content-section" id="experience">
                         <ol className="experience-timeline">
-                            {experience.map((item, index) => (
+                            {experience.map((item) => (
                                 <li key={item.company}>
                                     <a className="experience-link" href={item.href} target="_blank" rel="noreferrer" aria-label={`Visit ${item.company}`}>
-                                        <span className="row-number">0{index + 1}</span>
                                         <img src={`https://www.google.com/s2/favicons?domain=${item.domain}&sz=64`} alt="" />
                                         <div><strong>{item.company}</strong><p>{item.role}</p></div>
                                         <span className="tech-icons" aria-label={`${item.company} technologies`}>
@@ -96,9 +95,8 @@ export default function Home() {
 
                     <section className="content-section" id="projects">
                         <div className="project-grid">
-                            {projects.map((project, index) => (
+                            {projects.map((project) => (
                                 <a href={project.href} target="_blank" rel="noreferrer" className="project-item" key={project.name}>
-                                    <span>0{index + 1}</span>
                                     <div><strong>{project.name}</strong><p>{project.type}</p></div>
                                     <Arrow />
                                 </a>
