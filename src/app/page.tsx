@@ -85,7 +85,7 @@ export default function Home() {
                                         <img src={`https://www.google.com/s2/favicons?domain=${item.domain}&sz=64`} alt="" />
                                         <div><strong>{item.company}</strong><p>{item.role}</p></div>
                                         <span className="tech-icons" aria-label={`${item.company} technologies`}>
-                                            {item.tech.map((tool) => <img className={tool.icon === "react" ? "tech-icon-react" : undefined} key={tool.name} src={tool.icon.startsWith("http") ? tool.icon : `https://cdn.simpleicons.org/${tool.icon}`} alt={tool.name} title={tool.name} />)}
+                                            {item.tech.map((tool) => <img className={tool.icon === "react" || tool.icon === "huggingface" ? `tech-icon-bright${tool.icon === "react" ? " tech-icon-react" : ""}` : undefined} key={tool.name} src={tool.icon.startsWith("http") ? tool.icon : `https://cdn.simpleicons.org/${tool.icon}`} alt={tool.name} title={tool.name} />)}
                                         </span>
                                     </a>
                                 </li>
